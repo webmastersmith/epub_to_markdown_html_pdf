@@ -53,17 +53,27 @@ async function makePdf(file) {
   const media = []; // images, css files
   const data = Object.values(epub.manifest);
   for (const meta of data) {
-    if (meta['media-type'].includes('xml')) {
+    if (meta['media-type'].endsWith('xml')) {
       if (meta.id.includes('title')) {
-        title = await epub.getChapterAsync(meta.id);
+        try {
+          title = await epub.getChapterAsync(meta.id);
+        } catch (error) {
+          console.log('metadata: ', meta);
+          console.error('Error: ', error);
+        }
         continue;
       }
       if (meta.id.includes('next-read')) {
-        nextRead = await epub.getChapterAsync(meta.id);
+        try {
+          nextRead = await epub.getChapterAsync(meta.id);
+        } catch (error) {
+          console.log('metadata: ', meta);
+          console.error('Error: ', error);
+        }
         continue;
       }
       // avoid table of contents. special file that can be downloaded.
-      if (meta.id.includes('ncx')) {
+      if (meta.href.endsWith('ncx')) {
         // toc = await epub.getChapterAsync(meta.id);
         continue;
       }
@@ -79,7 +89,12 @@ async function makePdf(file) {
   const sortFn = sortBy('order', 'level');
   xml.sort(sortFn);
   for (const meta of xml) {
-    book += await epub.getChapterAsync(meta.id);
+    try {
+      book += await epub.getChapterAsync(meta.id);
+    } catch (error) {
+      console.log('metadata: ', meta);
+      console.error('Error: ', error);
+    }
   }
 
   // extract css file links.
@@ -101,6 +116,7 @@ async function makePdf(file) {
       /* font-size increased for mobile devices. */
       body {
         font-size:2rem !important;
+        margin: 20px !important;
       }
     </style>
   </head>

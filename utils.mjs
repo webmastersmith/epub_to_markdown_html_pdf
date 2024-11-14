@@ -51,11 +51,10 @@ export async function writeFile(meta, epub, buildPath) {
   //   const [buf, mimeType] = await epub.getImageAsync(meta.id);
   //   fs.writeFileSync(file, buf);
   //   return;
-  // } else {
+  // }
   const filePath = createPath(meta.href, buildPath);
   const [buf, mimeType] = await epub.getFileAsync(meta.id);
   fs.writeFileSync(filePath, buf);
-  // }
 }
 
 export const sortBy = (key1, key2) => {
@@ -107,14 +106,14 @@ export async function generatePDF(htmlPath, pdfPath) {
     await page.pdf({
       path: pdfPath,
       format: 'A4',
-      margin: {
-        top: '20px',
-        left: '20px',
-        right: '20px',
-        bottom: '20px',
-      },
+      // margin: {
+      //   top: '20px',
+      //   left: '20px',
+      //   right: '20px',
+      //   bottom: '20px',
+      // },
     });
-    console.log('PDF generated successfully');
+    console.log(`${pdfPath.split(/\\|\//).pop()} PDF generated successfully`);
   } catch (err) {
     console.error('Error generating PDF:', err);
   } finally {
