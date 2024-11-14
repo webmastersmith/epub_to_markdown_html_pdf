@@ -107,7 +107,7 @@ async function makePdf(file) {
   <body>
     <img alt="Cover Image" src="${epub.listImage()[0].href}" width="100%" height="100%">
     ${cleanBook}
-    ${nextRead}
+    ${nextRead || ''}
   </body>
 </html>
 `;
