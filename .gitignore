@@ -4,5 +4,4 @@ temp*
 avoid*
 node_modules/
 package-lock.json
-epubs/**
 
