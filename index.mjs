@@ -43,7 +43,7 @@ async function makePdf(file) {
   const markdownPath = path.join(buildPath, `${name}.md`);
   const pdfPath = path.join(buildPath, `${name}.pdf`);
 
-  // create the html
+  // extract the html
   let book = '';
   const epub = await EPub.createAsync(path.join(epubDir, file), './', '');
 
@@ -70,24 +70,25 @@ async function makePdf(file) {
       xml.push(meta);
     } else media.push(meta);
   }
-  // print media
+  // print media -images, css, fonts...
   for (const meta of media) {
     writeFile(meta, epub, buildPath);
   }
 
-  // sort xml
+  // sort and extract html from xml object.
   const sortFn = sortBy('order', 'level');
   xml.sort(sortFn);
   for (const meta of xml) {
     book += await epub.getChapterAsync(meta.id);
   }
 
+  // extract css file links.
   const cssLinks = [];
   for (const meta of data) {
     if (meta.href.endsWith('css')) cssLinks.push(`<link rel="stylesheet" href="${meta.href}">`);
   }
 
-  // final
+  // final html build
   const cleanBook = clean ? removeSwearWords(unwantedChars(book)) : unwantedChars(book);
   const html = `
 <html lang="en">
