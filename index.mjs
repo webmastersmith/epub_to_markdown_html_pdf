@@ -82,9 +82,9 @@ async function makePdf(file) {
     book += await epub.getChapterAsync(meta.id);
   }
 
-  const cssBlock = [];
+  const cssLinks = [];
   for (const meta of data) {
-    if (meta.href.endsWith('css')) cssBlock.push(`<link rel="stylesheet" href="${meta.href}">`);
+    if (meta.href.endsWith('css')) cssLinks.push(`<link rel="stylesheet" href="${meta.href}">`);
   }
 
   // final
@@ -92,10 +92,19 @@ async function makePdf(file) {
   const html = `
 <html lang="en">
   <head>
-    ${cssBlock.join('\n')}
+    ${cssLinks.join('\n')}
+    <style>
+      html, body {
+        height: 100%;
+      }
+      /* font-size increased for mobile devices. */
+      body {
+        font-size:2rem !important;
+      }
+    </style>
   </head>
-  <body style="font-size:2rem;">
-    <img alt="Title Image" src="${epub.listImage()[0].href}" width="100%" height="100%">
+  <body>
+    <img alt="Cover Image" src="${epub.listImage()[0].href}" width="100%" height="100%">
     ${cleanBook}
     ${nextRead}
   </body>

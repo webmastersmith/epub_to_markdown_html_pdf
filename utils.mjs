@@ -75,6 +75,7 @@ export function unwantedChars(txt) {
   return txt
     .replaceAll(/[‘’]/g, "'")
     .replaceAll(/[“”]/g, '"')
+    .replaceAll(/—|⸺|―/g, '-')
     .replaceAll(/[\xa0\x00-\x09\x0b\x0c\x0e-\x1f\x7f]/g, ' ')
     .trim();
 }
