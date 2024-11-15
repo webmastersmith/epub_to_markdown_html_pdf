@@ -20,8 +20,10 @@ import path from 'path';
 
 // remove swear words? change to false to keep them.
 const clean = true;
+// reverse color scheme.
 const darkMode = false;
-const fontSize = 1;
+// change font-size for mobile devices.
+const fontSize = 1; // e.g. fontSize=1.5; // 1.5 times the normal size.
 
 // remove old build.
 const buildDir = path.join(process.cwd(), 'build');

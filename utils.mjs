@@ -32,26 +32,6 @@ function createPath(href, buildPath) {
 }
 
 export async function writeFile(meta, epub, buildPath, fontSize = 1) {
-  // Get array of image metadata.
-  // {
-  //   id: 'item65',
-  //   'media-type': 'image/jpeg',
-  //   href: 'OEBPS/Images/image00374.jpeg',
-  //   mediaType: 'image/jpeg',
-  //   [Symbol(rawData)]: {
-  //     id: 'item65',
-  //     'media-type': 'image/jpeg',
-  //     href: 'Images/image00374.jpeg'
-  //   }
-  // }
-
-  // Image is only a separate function to add the 'pre-directory name'.
-  // if (meta['media-type'].includes('image')) {
-  //   const file = createPath(meta.href, true);
-  //   const [buf, mimeType] = await epub.getImageAsync(meta.id);
-  //   fs.writeFileSync(file, buf);
-  //   return;
-  // }
   const filePath = createPath(meta.href, buildPath);
   const [buf, mimeType] = await epub.getFileAsync(meta.id);
   // css fix font-size
@@ -65,19 +45,6 @@ export async function writeFile(meta, epub, buildPath, fontSize = 1) {
   }
   fs.writeFileSync(filePath, buf);
 }
-
-export const sortBy = (key1, key2) => {
-  return (a, b) =>
-    a[key1] > b[key1]
-      ? 1
-      : a[key1] < b[key1]
-      ? -1 // no match, must be equal.
-      : a[key2] > b[key2]
-      ? 1
-      : a[key2] < b[key2]
-      ? -1
-      : 0;
-};
 
 export function unwantedChars(txt) {
   return txt
