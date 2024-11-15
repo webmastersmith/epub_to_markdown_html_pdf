@@ -48,7 +48,7 @@ async function makePdf(file) {
   let book = '';
   const epub = await EPub.createAsync(path.join(epubDir, file), './', '');
   // epub.flow // 'spine'. ordered reading content.
-  // epub.manifest // all content.
+  // epub.manifest // all 'spine' content + media: images, css, font...
 
   // Get the xml metadata.
   const xml = epub.flow;
@@ -56,7 +56,7 @@ async function makePdf(file) {
     try {
       // extract html
       const html = await epub.getChapterAsync(meta.id);
-      // add id to each section for table of contents.
+      // Fix links. Add id to each section for table of contents.
       const fixId = html.replace(/<(\w+).*>/, (_, c1) => {
         // if coverImage
         if (i === 0) return `<${c1} id="${fixLink(meta.href)} coverImage">`;
