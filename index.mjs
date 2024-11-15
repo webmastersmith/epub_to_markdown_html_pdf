@@ -21,7 +21,7 @@ import path from 'path';
 // remove swear words? change to false to keep them.
 const clean = true;
 const darkMode = false;
-const fontSize = 2;
+const fontSize = 1;
 
 // remove old build.
 const buildDir = path.join(process.cwd(), 'build');

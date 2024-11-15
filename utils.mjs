@@ -57,7 +57,7 @@ export async function writeFile(meta, epub, buildPath, fontSize = 1) {
   // css fix font-size
   if (meta.href.endsWith('css')) {
     const fontSizeFix = buf.toString().replace(/font-size: ?([0-9.]+)(\w+)/g, (_, c1, c2) => {
-      return `font-size: ${parseFloat(c1) * fontSize}${c2}`;
+      return `font-size: ${(parseFloat(c1) * 1000 * (fontSize * 1000)) / 1000000}${c2}`;
     });
     // console.log(fontSizeFix);
     fs.writeFileSync(filePath, fontSizeFix);
