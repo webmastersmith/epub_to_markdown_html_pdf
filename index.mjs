@@ -1,7 +1,7 @@
 import { EPub } from 'epub2';
 import {
   writeFile,
-  sortBy,
+  fixLink,
   createMarkdown,
   removeSwearWords,
   generatePDF,
@@ -20,6 +20,8 @@ import path from 'path';
 
 // remove swear words? change to false to keep them.
 const clean = true;
+const darkMode = false;
+const fontSize = 2;
 
 // remove old build.
 const buildDir = path.join(process.cwd(), 'build');
@@ -43,95 +45,79 @@ async function makePdf(file) {
   const markdownPath = path.join(buildPath, `${name}.md`);
   const pdfPath = path.join(buildPath, `${name}.pdf`);
 
-  // extract the html
   let book = '';
   const epub = await EPub.createAsync(path.join(epubDir, file), './', '');
+  // epub.flow // 'spine'. ordered reading content.
+  // epub.manifest // all content.
 
-  let title;
-  let nextRead;
-  const xml = []; // html data.
-  const media = []; // images, css files
-  const data = Object.values(epub.manifest);
-  for (const meta of data) {
-    if (meta['media-type'].endsWith('xml')) {
-      if (meta.id.includes('title')) {
-        try {
-          title = await epub.getChapterAsync(meta.id);
-        } catch (error) {
-          console.log('metadata: ', meta);
-          console.error('Error: ', error);
-        }
-        continue;
-      }
-      if (meta.id.includes('next-read')) {
-        try {
-          nextRead = await epub.getChapterAsync(meta.id);
-        } catch (error) {
-          console.log('metadata: ', meta);
-          console.error('Error: ', error);
-        }
-        continue;
-      }
-      // avoid table of contents. special file that can be downloaded.
-      if (meta.href.endsWith('ncx')) {
-        // toc = await epub.getChapterAsync(meta.id);
-        continue;
-      }
-      xml.push(meta);
-    } else media.push(meta);
-  }
-  // print media -images, css, fonts...
-  for (const meta of media) {
-    writeFile(meta, epub, buildPath);
-  }
-
-  // sort and extract html from xml object.
-  const sortFn = sortBy('order', 'level');
-  xml.sort(sortFn);
-  for (const meta of xml) {
+  // Get the xml metadata.
+  const xml = epub.flow;
+  for (const [i, meta] of xml.entries()) {
     try {
-      book += await epub.getChapterAsync(meta.id);
+      // extract html
+      const html = await epub.getChapterAsync(meta.id);
+      // add id to each section for table of contents.
+      const fixId = html.replace(/<(\w+).*>/, (_, c1) => {
+        // if coverImage
+        if (i === 0) return `<${c1} id="${fixLink(meta.href)} coverImage">`;
+        return `<${c1} id="${fixLink(meta.href)}" type="bookSection">`;
+      });
+      // fix links in table of contents.
+      if (/\bcontent/i.test(meta.title)) {
+        book += fixId.replace(/href="([^"]*)"/g, (_, c1) => `href="#${fixLink(c1)}"`);
+        continue;
+      }
+      book += fixId;
     } catch (error) {
-      console.log('metadata: ', meta);
-      console.error('Error: ', error);
+      console.error('Error extracting content', meta);
     }
+  }
+
+  // extract the media
+  const media = Object.values(epub.manifest).filter((meta) => !meta['media-type'].endsWith('xml'));
+  // console.log(media);
+  for (const meta of media) {
+    writeFile(meta, epub, buildPath, fontSize);
   }
 
   // extract css file links.
   const cssLinks = [];
-  for (const meta of data) {
+  for (const meta of media) {
     if (meta.href.endsWith('css')) cssLinks.push(`<link rel="stylesheet" href="${meta.href}">`);
   }
 
+  const background = '#101010';
+  const text = '#f5f5f5';
+  const darkStyle = `
+/* font-size increased for mobile devices. */
+background-color: ${darkMode ? background : text} !important;
+color: ${darkMode ? text : background} !important;
+`;
   // final html build
   const cleanBook = clean ? removeSwearWords(unwantedChars(book)) : unwantedChars(book);
   const html = `
-<html lang="en">
-  <head>
-    ${cssLinks.join('\n')}
-    <style>
-      html, body {
-        height: 100%;
-      }
-      /* font-size increased for mobile devices. */
-      body {
-        font-size:2rem !important;
-        margin: 20px !important;
-      }
-    </style>
-  </head>
-  <body>
-    <img alt="Cover Image" src="${epub.listImage()[0].href}" width="100%" height="100%">
-    ${cleanBook}
-    ${nextRead || ''}
-  </body>
-</html>
-`;
+  <html lang="en">
+    <head>
+      ${cssLinks.join('\n')}
+      <style>
+        body {
+          /* font-size increased for mobile devices. */
+          font-size: ${fontSize}rem !important;
+          padding: 20px !important;
+          ${darkStyle}
+        }
+      </style>
+    </head>
+    <body>
+      ${cleanBook}
+    </body>
+  </html>
+  `;
   // Create html file
   fs.writeFileSync(htmlPath, html);
 
   // Create markdown
-  const md = createMarkdown(cleanBook + nextRead);
+  const md = createMarkdown(cleanBook);
   // attach cover image to markdown file.
   const mdBook = `![cover image](${epub.listImage()[0].href})\n` + md;
   // create markdown file
