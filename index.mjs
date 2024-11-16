@@ -18,12 +18,12 @@ import path from 'path';
 // https://github.com/bluelovers/ws-epub/blob/d27ef52af34a27b1f18b4fc3a101850638c7bb38/packages/epub2/test/example/example2.ts
 // https://github.com/bluelovers/ws-epub/blob/HEAD/packages/epub2/test/example/example.ts
 
-// remove swear words? change to false to keep them.
+// remove swear words? change to false to preserve original.
 const clean = true;
 // reverse color scheme.
 const darkMode = false;
 // change font-size for mobile devices.
-const fontSize = 2; // e.g. fontSize=1.5; // 1.5 times the normal size.
+const fontSize = 2; // (e.g. fontSize=1.5; // 1.5 times the normal size).
 
 // remove old build.
 const buildDir = path.join(process.cwd(), 'build');
@@ -61,8 +61,9 @@ async function makePdf(file) {
       html = await epub.getChapterAsync(meta.id);
       // Add id to each section.
       html = html.replace(/<(\w+)[^>]*>/, (_, c1) => {
-        // cover image.
+        // cover image section.
         if (i === 0) return `<${c1} id="${fixLink(meta.href)} coverImage">`;
+        // rest of sections
         return `<${c1} id="${fixLink(meta.href)}" type="bookSection">`;
       });
       // remove nested directories from links.
@@ -87,7 +88,6 @@ async function makePdf(file) {
   const background = '#101010';
   const text = '#f5f5f5';
   const darkStyle = `
-/* font-size increased for mobile devices. */
 background-color: ${darkMode ? background : text} !important;
 color: ${darkMode ? text : background} !important;
 `;
@@ -99,10 +99,15 @@ color: ${darkMode ? text : background} !important;
       ${cssLinks.join('\n')}
       <style>
         body {
-          /* font-size increased for mobile devices. */
           font-size: ${fontSize}rem !important;
           padding: 20px !important;
           ${darkStyle}
+        }
+        #coverImage {
+          /* Custom css for cover image section */
+        }
+        [type="bookSection"] {
+          /* Custom css for each section */
         }
       </style>
     </head>
