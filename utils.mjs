@@ -48,10 +48,11 @@ export async function writeFile(meta, epub, buildPath, fontSize = 1) {
 
 export function unwantedChars(txt) {
   return txt
-    .replaceAll(/[‘’]/g, "'")
-    .replaceAll(/[“”]/g, '"')
-    .replaceAll(/—|⸺|―/g, '-')
-    .replaceAll(/[\xa0\x00-\x09\x0b\x0c\x0e-\x1f\x7f]/g, ' ')
+    .replace(/[‘’]/g, "'")
+    .replace(/[“”]/g, '"')
+    .replace(/—|⸺|―/g, '-')
+    .replaceAll('•', '*')
+    .replace(/[\xa0\x00-\x09\x0b\x0c\x0e-\x1f\x7f]/g, ' ')
     .trim();
 }
 
@@ -78,7 +79,7 @@ export function fixLink(href) {
   // sub links have hash tags
   if (href.includes('#')) return removeNonAscii(href.split('#').pop(), false, false, true);
   // sometimes start with digit. Fix with letter.
-  return `C${removeNonAscii(href.split(/\/|\\/).pop(), false, false, true)}`;
+  return `${removeNonAscii(href.split(/\/|\\/).pop(), false, false, true)}`;
 }
 
 // Puppeteer

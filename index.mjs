@@ -23,7 +23,7 @@ const clean = true;
 // reverse color scheme.
 const darkMode = false;
 // change font-size for mobile devices.
-const fontSize = 1; // e.g. fontSize=1.5; // 1.5 times the normal size.
+const fontSize = 2; // e.g. fontSize=1.5; // 1.5 times the normal size.
 
 // remove old build.
 const buildDir = path.join(process.cwd(), 'build');
@@ -57,27 +57,23 @@ async function makePdf(file) {
   for (const [i, meta] of xml.entries()) {
     try {
       // extract html
-      const html = await epub.getChapterAsync(meta.id);
-      // Fix links. Add id to each section for table of contents.
-      const fixId = html.replace(/<(\w+).*>/, (_, c1) => {
-        // if coverImage
+      let html = '';
+      html = await epub.getChapterAsync(meta.id);
+      // Add id to each section.
+      html = html.replace(/<(\w+)[^>]*>/, (_, c1) => {
+        // cover image.
         if (i === 0) return `<${c1} id="${fixLink(meta.href)} coverImage">`;
         return `<${c1} id="${fixLink(meta.href)}" type="bookSection">`;
       });
-      // fix links in table of contents.
-      if (/\bcontent/i.test(meta.title)) {
-        book += fixId.replace(/href="([^"]*)"/g, (_, c1) => `href="#${fixLink(c1)}"`);
-        continue;
-      }
-      book += fixId;
+      // remove nested directories from links.
+      book += html.replace(/ href="([^"]*)"/g, (_, c1) => ` href="#${fixLink(c1)}"`);
     } catch (error) {
       console.error('Error extracting content', meta);
     }
   }
 
   // extract the media
-  const media = Object.values(epub.manifest).filter((meta) => !meta['media-type'].endsWith('xml'));
-  // console.log(media);
+  const media = Object.values(epub.manifest).filter((meta) => !/(xml|html)$/.test(meta['media-type']));
   for (const meta of media) {
     writeFile(meta, epub, buildPath, fontSize);
   }
