@@ -4,8 +4,6 @@
   "main": "epub_clean.ts",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.mjs",
     "build": "node --experimental-strip-types ./epub_clean.ts"
   },
   "author": "",
